@@ -1,46 +1,36 @@
-import urllib.request
-import urllib.error
-import urllib.parse
-import json
+import urllib.request, urllib.parse, json #modules for HTTP requests, URL encoding, and JSON parsing
 
-def dictionary():
-    word = input("Enter an English word: ").strip()
+#starts function with word as parameter
+def dictionary(word):
+    word = word.strip()
     if not word:
-        print("No word entered.")
-        return
+        return #exit function if no word
 
     url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{urllib.parse.quote(word)}"
     try:
-        with urllib.request.urlopen(url) as resp:
+        with urllib.request.urlopen(url) as resp: #opens URL
             data = json.load(resp)
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
-            print(f"No definition found for '{word}'.")
-            return
-        print(f"HTTP error {e.code}: {e.reason}")
-        return
-    except Exception as e:
-        print(f"Error fetching definition: {e}")
-        return
+    except:
+        return #exit function if error occurs
 
-    definitions = []
-    for entry in data:
-        for meaning in entry.get("meanings", []):
-            part = meaning.get("partOfSpeech", "")
-            for d in meaning.get("definitions", []):
-                definitions.append((part, d.get("definition"), d.get("example")))
+#start list that gets definitions
+    definitions = [
+        d.get("definition")
+        for entry in data
+        for m in entry.get("meanings", []) #meaning in entry
+        for d in m.get("definitions", []) #definition in meaning
+    ]
 
     if not definitions:
-        print(f"No definitions found for '{word}'.")
+        print(f"No definitions found for '{word}'")
         return
 
+#list gets definitions, numbers them, and prints them, max 10
     print(f"Definitions for '{word}':")
-    for i, (part, definition, example) in enumerate(definitions[:10], start=1):
-        part_str = f"({part}) " if part else ""
-        print(f"{i}. {part_str}{definition}")
-        if example:
-            print(f"   Example: {example}")
-
-
+    for i, definition in enumerate(definitions[:10], 1):
+        print(f"{i}. {definition}")
+        
+#ask for user input and call function
 if __name__ == "__main__":
-    dictionary()
+    user_word = input("Enter an English word: ")
+    dictionary(user_word)
